@@ -1,0 +1,56 @@
+digraph G {
+	graph [layout=dot rankdir=LR]
+
+    subgraph database{
+        node [shape="box", fontname="OpenDyslexic"]
+
+        user [label=<<table border="0" cellborder="0" cellpadding="3">
+            <tr><td bgcolor="black" align="center" colspan="2"><font color="white">user</font></td></tr>
+            <tr><td align="left" port="id">id int(10)</td></tr>
+            <tr><td align="left" port="weibo">weibo int(10)</td></tr>
+            <tr><td align="left" port="nickname">nickname varchar(100)</td></tr>
+            <tr><td align="left" port="sex">sex varchar(1)</td></tr>
+            <tr><td align="left" port="blog">blog varchar(100)</td></tr>
+            <tr><td align="left" port="birthday">birthday varchar(30)</td></tr>
+            <tr><td align="left" port="site">site varchar(30)</td></tr>
+            <tr><td align="left" port="email">email varchar(50)</td></tr>
+            <tr><td align="left" port="qq">qq varchar(15)</td></tr>
+            <tr><td align="left" port="summary">summary varchar(300)</td></tr>
+            </table>>]
+
+        relation [label=<<table border="0" cellborder="0" cellpadding="3">
+            <tr><td bgcolor="black" align="center" colspan="2"><font color="white">relation</font></td></tr>
+            <tr><td align="left" port="user_id1">user_id1 int(10)</td></tr>
+            <tr><td align="left" port="user_id2">user_id2 int(10)</td></tr>
+            <tr><td align="left" port="type">type varchar(1)</td></tr>
+            </table>>]
+
+
+        queue [label=<<table border="0" cellborder="0" cellpadding="3">
+            <tr><td bgcolor="black" align="center" colspan="2"><font color="white">queue</font></td></tr>
+            <tr><td align="left" port="id">id int(10)</td></tr>
+            <tr><td align="left" port="user_id">user_id int(10)</td></tr>
+            <tr><td align="left" port="act">act varchar(1)</td></tr>
+            <tr><td align="left" port="is_finish">is_finish varchar(1)</td></tr>
+            </table>>]
+
+        relation:user_id1 -> user:id
+        relation:user_id2 -> user:id
+        queue:user_id -> user:id
+    }
+
+//     subgraph process{
+//         robot[label="Robot"]
+//         weibo[label="Weibo"]
+//         profile[label="Profile"]
+//         fans[label="Fans"]
+//         follow[label="Follow"]
+//         friends[label="Friends"]
+//         robot -> weibo[label="login"]
+//         weibo -> profile[label="Get"]
+//         weibo -> follow[label="Get"]
+//         weibo -> fans[label="Get"]
+//         {fans follow} -> friends
+//         friends -> weibo
+//     }
+}
