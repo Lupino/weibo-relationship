@@ -7,6 +7,7 @@ import base64
 import hashlib
 import pickle
 from bs4 import BeautifulSoup
+import os
 
 class Weibo(object):
 
@@ -24,9 +25,12 @@ class Weibo(object):
         self.browser.config['base_headers']['User-Agent'] = agent
 
     def load_cookies(self):
-        f = open(self.cookie_file, 'rb')
-        self.browser.cookies = pickle.load(f)
-        f.close()
+        if os.path.isfile(self.cookie_file):
+            f = open(self.cookie_file, 'rb')
+            self.browser.cookies = pickle.load(f)
+            f.close()
+            return True
+        return False
 
     def dump_cookies(self):
         f = open(self.cookie_file, 'wb')
