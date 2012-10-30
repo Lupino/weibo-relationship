@@ -140,13 +140,14 @@ class Weibo(object):
             if url in followed:
                 continue
             followed.append(url)
+            print('Get data from [%s]'%url)
             r = self.get(url)
             html = self.get_html(r.text, key)[0]
             html = BeautifulSoup(html)
             for user in self.parse_user_data(html, tag):
                 yield user
             for a in html.find_all('a', {'href': re_href}):
-                urls.append(urllib.parse.urljoin(r.url, a.href))
+                urls.append(urllib.parse.urljoin(r.url, a.get('href')))
 
     def get_myfans(self, uid):
         url = 'http://weibo.com/%s/myfans'%uid
