@@ -106,26 +106,28 @@ class Weibo(object):
 
     def parse_user_data(self, html, tag = 'div'):
         users = []
-        for fan in html.find('ul', {'class': 'cnfList'}).find_all('li'):
-            user = {}
-            data = fan.get('action-data')
-            if data is None:
-                continue
-            for data in fan.get('action-data').split('&'):
-                data = data.split('=')
-                if data[0] == 'fnick':
-                    user['nickname'] = data[1]
+        cnlist = html.find('ul', {'class': 'cnfList'})
+        if cnlist:
+            for fan in cnlist.find_all('li'):
+                user = {}
+                data = fan.get('action-data')
+                if data is None:
+                    continue
+                for data in fan.get('action-data').split('&'):
+                    data = data.split('=')
+                    if data[0] == 'fnick':
+                        user['nickname'] = data[1]
+                    else:
+                        user[data[0]] = data[1]
+                info = fan.find(tag, {'class': 'info'})
+                if info:
+                    user['info'] = info.text.strip()
                 else:
-                    user[data[0]] = data[1]
-            info = fan.find(tag, {'class': 'info'})
-            if info:
-                user['info'] = info.text.strip()
-            else:
-                user['info'] = ''
-            user['address'] = fan.find(tag, {'class': 'name'}).span.text.strip()
-            user['face'] = self.get(fan.find(tag, {'class': 'face'}).img.get('src')).content
+                    user['info'] = ''
+                user['address'] = fan.find(tag, {'class': 'name'}).span.text.strip()
+                user['face'] = self.get(fan.find(tag, {'class': 'face'}).img.get('src')).content
 
-            yield user
+                yield user
 
     def get_users(self, url, key, re_href):
         tag = 'div'
