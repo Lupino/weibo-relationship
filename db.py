@@ -10,12 +10,9 @@ def create_table():
             uid int(10),
             nickname varchar(100),
             sex varchar(1),
-            blog varchar(100),
-            birthday varchar(30),
-            site varchar(30),
-            email varchar(50),
-            qq varchar(50),
-            info varchar(300)
+            address varchar(300),
+            info varchar(300),
+            face
             )
             ''')
     cur.execute('''
@@ -27,7 +24,7 @@ def create_table():
     cur.execute('''
             create table queue(
             id integer primary key autoincrement,
-            user_id int(10),
+            uid int(10),
             is_finish varchar(1)
             )
             ''')
@@ -72,38 +69,38 @@ def get_relation(me):
 def get_user(id):
     conn = sqlite.connect(DBFILE)
     cur = conn.cursor()
-    cur.execute("select uid, nickname, sex, blog, birthday, site, email, qq, info from user where id = ?", (id, ))
+    cur.execute("select uid, nickname, sex, address, info, face from user where id = ?", (id, ))
     ret = cur.fetchone()
     retval = {}
     if ret:
         retval['uid'] = ret[0]
         retval['nickname'] = ret[1]
         retval['sex'] = ret[2]
-        retval['blog'] = ret[3]
-        retval['birthday'] = ret[4]
-        retval['site'] = ret[5]
-        retval['email'] = ret[6]
-        retval['qq'] = ret[7]
-        retval['info'] = ret[8]
+        retval['address'] = ret[3]
+        retval['info'] = ret[4]
+        retval['face'] = ret[5]
     cur.close()
     conn.close()
     return retval
 
-def add_user(uid, nickname, sex, blog, birthday, site, email, qq, info):
+def add_user(uid, nickname, sex, address, info, face):
     conn = sqilte.connect(DBFILE)
     cur = conn.cursor()
-    cur.execute('insert into user (uid, nickname, sex, blog, birthday, site, email, qq, info)values(?, ?, ?, ?, ?, ?, ?, ?, ?)', (uid, nickname, sex, blog, birthday, site, email,  qq, info, ))
-    conn.commit()
+    cur.execute("select uid from user where uid = ?", (uid, ))
+    ret = cur.fetchone()
+    if ret is None:
+        cur.execute('insert into user (uid, nickname, sex, address, info, face)values(?, ?, ?, ?, ?, ?)', (uid, nickname, sex, address, info, face, ))
+        conn.commit()
     cur.close()
     conn.close()
 
-def add_queue(user_id):
+def add_queue(uid):
     conn = sqilte.connect(DBFILE)
     cur = conn.cursor()
-    cur.execute('select id from queue where user_id = ?', (user_id, ))
+    cur.execute('select id from queue where uid = ?', (user_id, ))
     ret = cur.fetchone()
     if ret is None:
-        cur.execute('insert into queue (user_id, is_finish)values(?, ?)', (user_id, 'N', ))
+        cur.execute('insert into queue (uid, is_finish)values(?, ?)', (uid, 'N', ))
         conn.commit()
     cur.close()
     conn.close()
@@ -111,16 +108,16 @@ def add_queue(user_id):
 def get_next_queue():
     conn = sqilte.connect(DBFILE)
     cur = conn.cursor()
-    cur.execute('select user_id from queue where is_finish = ? order by id', ('N', ))
+    cur.execute('select uid from queue where is_finish = ? order by id', ('N', ))
     ret = cur.fetchone()
     cur.close()
     conn.close()
     return ret[0]
 
-def finish_queue(user_id):
+def finish_queue(uid):
     conn = sqilte.connect(DBFILE)
     cur = conn.cursor()
-    cur.execute('update queue set is_finish = ? where user_id = ?', ('Y', user_id, ))
+    cur.execute('update queue set is_finish = ? where uid = ?', ('Y', uid, ))
     conn.commit()
     cur.close()
     conn.close()
