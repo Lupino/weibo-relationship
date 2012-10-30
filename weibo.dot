@@ -29,9 +29,9 @@ digraph G {
             <tr><td align="left" port="is_finish">is_finish varchar(1)</td></tr>
             </table>>]
 
-        relation:me -> user:id
-        relation:fan -> user:id
-        queue:uid -> user:id
+        relation:me -> user:uid
+        relation:fan -> user:uid
+        queue:uid -> user:uid
     }
 
 //     subgraph process{
