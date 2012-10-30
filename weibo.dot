@@ -7,7 +7,7 @@ digraph G {
         user [label=<<table border="0" cellborder="0" cellpadding="3">
             <tr><td bgcolor="black" align="center" colspan="2"><font color="white">user</font></td></tr>
             <tr><td align="left" port="id">id int(10)</td></tr>
-            <tr><td align="left" port="weibo">weibo int(10)</td></tr>
+            <tr><td align="left" port="uid">uid int(10)</td></tr>
             <tr><td align="left" port="nickname">nickname varchar(100)</td></tr>
             <tr><td align="left" port="sex">sex varchar(1)</td></tr>
             <tr><td align="left" port="blog">blog varchar(100)</td></tr>
