@@ -8,6 +8,7 @@ import hashlib
 import pickle
 from bs4 import BeautifulSoup
 import os
+import db
 
 class Weibo(object):
 
@@ -125,7 +126,10 @@ class Weibo(object):
                 else:
                     user['info'] = ''
                 user['address'] = fan.find(tag, {'class': 'name'}).span.text.strip()
-                user['face'] = self.get(fan.find(tag, {'class': 'face'}).img.get('src')).content
+                if db.is_exists(user['uid']):
+                    user['face'] = b'\x00\x00'
+                else:
+                    user['face'] = self.get(fan.find(tag, {'class': 'face'}).img.get('src')).content
 
                 yield user
 
