@@ -28,7 +28,6 @@ def create_table():
             create table queue(
             id integer primary key autoincrement,
             user_id int(10),
-            act varchar(1),
             is_finish varchar(1)
             )
             ''')
@@ -97,3 +96,32 @@ def add_user(uid, nickname, sex, blog, birthday, site, email, qq, info):
     conn.commit()
     cur.close()
     conn.close()
+
+def add_queue(user_id):
+    conn = sqilte.connect(DBFILE)
+    cur = conn.cursor()
+    cur.execute('select id from queue where user_id = ?', (user_id, ))
+    ret = cur.fetchone()
+    if ret is None:
+        cur.execute('insert into queue (user_id, is_finish)values(?, ?)', (user_id, 'N', ))
+        conn.commit()
+    cur.close()
+    conn.close()
+
+def get_next_queue():
+    conn = sqilte.connect(DBFILE)
+    cur = conn.cursor()
+    cur.execute('select user_id from queue where is_finish = ? order by id', ('N', ))
+    ret = cur.fetchone()
+    cur.close()
+    conn.close()
+    return ret[0]
+
+def finish_queue(user_id):
+    conn = sqilte.connect(DBFILE)
+    cur = conn.cursor()
+    cur.execute('update queue set is_finish = ? where user_id = ?', ('Y', user_id, ))
+    conn.commit()
+    cur.close()
+    conn.close()
+
