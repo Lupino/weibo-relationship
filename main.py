@@ -49,19 +49,24 @@ def get_relation(uid):
         db.add_relation(fo['uid'], uid)
     for friend in get_friends(fans, follow):
         db.add_queue(friend)
+    print('User[%s] fans[%s] follow[%s]'%(uid, len(fans), len(follow)))
     db.finish_queue(uid)
 
 def run():
     while True:
         uid = db.get_next_queue()
+        print('Get user[%s]\' relationship'%uid)
         get_relation(uid)
 
 def first_run():
+    print('Login')
     login()
+    print('Create table')
     db.create_table()
+    print('Get my relation')
     get_myrelation()
-    open('First_run', 'w') as f:
-        f.write(0)
+    with open('First_run', 'w') as f:
+        f.write('0')
 
 def main():
     if not os.path.isfile('First_run'):

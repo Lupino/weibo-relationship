@@ -2,7 +2,7 @@ from config import DBFILE
 import sqlite3 as sqlite
 
 def create_table():
-    conn = sqilte.connect(DBFILE)
+    conn = sqlite.connect(DBFILE)
     cur = conn.cursor()
     cur.execute('''
             create table user (
@@ -84,7 +84,7 @@ def get_user(id):
     return retval
 
 def add_user(uid, nickname, sex, address, info, face):
-    conn = sqilte.connect(DBFILE)
+    conn = sqlite.connect(DBFILE)
     cur = conn.cursor()
     cur.execute("select uid from user where uid = ?", (uid, ))
     ret = cur.fetchone()
@@ -95,9 +95,9 @@ def add_user(uid, nickname, sex, address, info, face):
     conn.close()
 
 def add_queue(uid):
-    conn = sqilte.connect(DBFILE)
+    conn = sqlite.connect(DBFILE)
     cur = conn.cursor()
-    cur.execute('select id from queue where uid = ?', (user_id, ))
+    cur.execute('select id from queue where uid = ?', (uid, ))
     ret = cur.fetchone()
     if ret is None:
         cur.execute('insert into queue (uid, is_finish)values(?, ?)', (uid, 'N', ))
@@ -106,7 +106,7 @@ def add_queue(uid):
     conn.close()
 
 def get_next_queue():
-    conn = sqilte.connect(DBFILE)
+    conn = sqlite.connect(DBFILE)
     cur = conn.cursor()
     cur.execute('select uid from queue where is_finish = ? order by id', ('N', ))
     ret = cur.fetchone()
@@ -115,7 +115,7 @@ def get_next_queue():
     return ret[0]
 
 def finish_queue(uid):
-    conn = sqilte.connect(DBFILE)
+    conn = sqlite.connect(DBFILE)
     cur = conn.cursor()
     cur.execute('update queue set is_finish = ? where uid = ?', ('Y', uid, ))
     conn.commit()
