@@ -5,6 +5,9 @@ import os
 import random
 from time import sleep as _sleep
 
+import requests_cache
+requests_cache.configure('cache')
+
 weibo = Weibo(EMAIL, PASSWD, COOKIE_FILE)
 
 weibo.load_cookies()
