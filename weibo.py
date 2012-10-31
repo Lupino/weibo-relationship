@@ -1,6 +1,6 @@
 import requests
-#import requests_cache
-#requests_cache.configure('cache')
+import requests_cache
+requests_cache.configure('cache')
 from time import time
 import re
 import json
