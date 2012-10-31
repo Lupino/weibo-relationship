@@ -1,13 +1,28 @@
 import requests
-import requests_cache
-requests_cache.configure('cache')
+#import requests_cache
+#requests_cache.configure('cache')
 from time import time
 import re
 import json
-import urllib.parse
+try:
+    from urlparse import urljoin
+    from urllib import quote
+    is_py3k = False
+except:
+    from urllib.parse import urljoin, quote
+    is_py3k = True
 import base64
-import hashlib
-import pickle
+from hashlib import sha1 as _sha1
+def sha1(string):
+    if is_py3k:
+        string = string.encode('UTF8')
+
+    return _sha1(string).hexdigest()
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
 from bs4 import BeautifulSoup
 import os
 import db
@@ -23,6 +38,7 @@ class Weibo(object):
 
         self.browser = requests.session()
         self.browser.config['base_headers']['User-Agent'] = 'Mozilla/5.0 (X11; Linux i686; rv:8.0) Gecko/20100101 Firefox/8.0'
+        self.browser.config['base_headers']['Accept-Charset'] = 'ISO-8859-1,utf-8;q=0.7,*;q=0.3'
 
     def set_user_agent(self, agent):
         self.browser.config['base_headers']['User-Agent'] = agent
@@ -68,7 +84,7 @@ class Weibo(object):
             'url': 'http://weibo.com/ajaxlogin.php?framelogin=1&callback=parent.sinaSSOController.feedBackUrlCallBack',
             'returntype': 'META'
         })
-        p = re.compile('location\.replace\(\'(.*?)\'\)')
+        p = re.compile('location\.replace\([\'"](.*?)[\'"]\)')
         login_url = p.search(r.text).group(1)
         r = self.get(login_url)
         return r.text
@@ -84,13 +100,15 @@ class Weibo(object):
         return servertime, nonce
 
     def enc_user(self):
-        return base64.encodebytes(urllib.parse.quote(self.email).encode('UTF8')).strip()
+        if is_py3k:
+            return base64.encodebytes(quote(self.email).encode('UTF8')).strip()
+        return base64.encodestring(quote(self.email)).strip()
 
     def enc_passwd(self, servertime, nonce):
-        pwd = hashlib.sha1(self.passwd.encode('UTF8')).hexdigest()
-        pwd = hashlib.sha1(pwd.encode('UTF8')).hexdigest()
+        pwd = sha1(self.passwd)
+        pwd = sha1(pwd)
         pwd = pwd + str(servertime) + str(nonce)
-        pwd = hashlib.sha1(pwd.encode('UTF8')).hexdigest()
+        pwd = sha1(pwd)
         return pwd
 
     def get_html(self, text, pid):
@@ -103,11 +121,13 @@ class Weibo(object):
                     data = data.group(1)
                     data = json.loads(data)
                     pid1 = data.get('pid')
+                    if not is_py3k:
+                        pid1 = pid1.encode('UTF8')
                     if pid1 == pid:
                         retval.append(data.get('html'))
         return retval
 
-    def parse_user_data(self, html, tag = 'div'):
+    def parse_user_data(self, html):
         users = []
         cnlist = html.find('ul', {'class': 'cnfList'})
         if cnlist:
@@ -122,23 +142,25 @@ class Weibo(object):
                         user['nickname'] = data[1]
                     else:
                         user[data[0]] = data[1]
-                info = fan.find(tag, {'class': 'info'})
+                info = fan.find('div', {'class': 'info'})
                 if info:
                     user['info'] = info.text.strip()
                 else:
                     user['info'] = ''
-                user['address'] = fan.find(tag, {'class': 'name'}).span.text.strip()
-                if db.is_exists(user['uid']):
-                    user['face'] = b'\x00\x00'
+                addr = fan.find('div', {'class': 'name'})
+                if addr and addr.span:
+                    user['address'] = addr.span.text.strip()
                 else:
-                    user['face'] = self.get(fan.find(tag, {'class': 'face'}).img.get('src')).content
+                    user['address'] = ""
+                face = fan.find('div', {'class': 'face'})
+                if not db.is_exists(user['uid']) and face and face.img:
+                    user['face'] = self.get(face.img.get('src')).content
+                else:
+                    user['face'] = b'\x00\x00'
 
                 yield user
 
     def get_users(self, url, key, re_href):
-        tag = 'div'
-        if url.find('my') > -1:
-            tag = 'p'
         followed = []
         urls = [url]
         while True:
@@ -152,10 +174,10 @@ class Weibo(object):
             r = self.get(url)
             html = self.get_html(r.text, key)[0]
             html = BeautifulSoup(html)
-            for user in self.parse_user_data(html, tag):
+            for user in self.parse_user_data(html):
                 yield user
             for a in html.find_all('a', {'href': re_href}):
-                urls.append(urllib.parse.urljoin(r.url, a.get('href')))
+                urls.append(urljoin(r.url, a.get('href')))
 
     def get_myfans(self, uid):
         url = 'http://weibo.com/%s/myfans'%uid
@@ -166,7 +188,7 @@ class Weibo(object):
     def get_myfollow(self, uid):
         url = 'http://weibo.com/%s/myfollow'%uid
         re_href = re.compile('/%s/myfollow'%uid)
-        key = 'pl_relation_follow'
+        key = 'pl_relation_myfollow'
         return self.get_users(url, key, re_href)
 
     def get_hisfans(self, uid):
