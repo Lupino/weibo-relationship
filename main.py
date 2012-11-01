@@ -62,27 +62,32 @@ def get_relation(uid):
 def run():
     liveness = 0
     while True:
-        liveness += 1
-        uid = db.get_next_queue()
-        print('Get user[%s]\' relationship'%uid)
-        get_relation(uid)
-        if liveness <= 50:
-            delay = random.randint(5, 60)
-        elif liveness<=100:
-            delay = random.randint(30, 180)
-        else:
-            delay = random.randint(600, 1800)
-            if delay > 900:
-                liveness = 0
-        _sleep(delay)
+        try:
+            liveness += 1
+            uid = db.get_next_queue()
+            print('Get user[%s]\' relationship'%uid)
+            get_relation(uid)
+            if liveness <= 50:
+                delay = random.randint(5, 60)
+            elif liveness<=100:
+                delay = random.randint(30, 180)
+            else:
+                delay = random.randint(600, 1800)
+                if delay > 900:
+                    liveness = 0
+            _sleep(delay)
+            requests_cache.clear()
+        except Exception as e:
+            print('Error:%s'%e)
+            _sleep(300)
 
 def first_run():
     print('Login')
     login()
     print('Create table')
-    db.create_table()
+    #db.create_table()
     print('Get my relation')
-    get_myrelation()
+    #get_myrelation()
     with open('First_run', 'w') as f:
         f.write('0')
 
