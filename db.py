@@ -122,3 +122,28 @@ def finish_queue(uid):
     cur.close()
     conn.close()
 
+def get_users():
+    conn = sqlite.connect(DBFILE)
+    cur = conn.cursor()
+    cur.execute("select uid, nickname, sex, address, info, face from user")
+    for ret in cur.fetchall():
+        retval = {}
+        if ret:
+            retval['uid'] = ret[0]
+            retval['nickname'] = ret[1]
+            retval['sex'] = ret[2]
+            retval['address'] = ret[3]
+            retval['info'] = ret[4]
+            retval['face'] = ret[5]
+            yield retval
+    cur.close()
+    conn.close()
+
+def get_relations():
+    conn = sqlite.connect(DBFILE)
+    cur = conn.cursor()
+    cur.execute("select me, fan from relation")
+    for fan in cur.fetchall():
+        yield {'me':fan[0], 'fan':fan[1]}
+    cur.close()
+    conn.close()

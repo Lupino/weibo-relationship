@@ -1,5 +1,4 @@
 import requests
-from time import time
 import re
 import json
 try:
@@ -126,7 +125,6 @@ class Weibo(object):
         return retval
 
     def parse_user_data(self, html):
-        users = []
         cnlist = html.find('ul', {'class': 'cnfList'})
         if cnlist:
             for fan in cnlist.find_all('li'):

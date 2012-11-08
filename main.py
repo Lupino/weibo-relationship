@@ -1,4 +1,4 @@
-from config import *
+from config import EMAIL, PASSWD, COOKIE_FILE, UID
 from weibo import Weibo
 import db
 import os
