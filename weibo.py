@@ -59,42 +59,52 @@ class Weibo(object):
     def post(self, *args, **kws):
         return self.browser.post(*args, **kws)
 
-    def login(self):
-        servertime, nonce = self.get_servertime()
-        url = 'http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.3.18)'
-        r = self.post(url, data={
+    def login(self, pin = None):
+        prelogin = self.prelogin()
+        url = 'http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.2)'
+        data={
             'entry': 'weibo',
             'gateway': '1',
             'from': '',
             'savestate': '7',
             'userticket': '1',
-            'ssosimplelogin': '1',
             'vsnf': '1',
-            'vsnval': '',
+            'ssosimplelogin': '1',
             'su': self.enc_user(),
             'service': 'miniblog',
-            'servertime': servertime,
-            'nonce': nonce,
+            'servertime': prelogin['servertime'],
+            'nonce': prelogin['nonce'],
             'pwencode': 'wsse',
-            'sp': self.enc_passwd(servertime, nonce),
+            #'rsakv': prelogin['rsakv'],
+            'sp': self.enc_passwd(prelogin['servertime'], prelogin['nonce']),
             'encoding': 'UTF-8',
+            'prelt': 255,
             'url': 'http://weibo.com/ajaxlogin.php?framelogin=1&callback=parent.sinaSSOController.feedBackUrlCallBack',
             'returntype': 'META'
-        })
+        }
+        if pin:
+            data['pcid'] = pin['pcid']
+            data['door'] = pin['door']
+        r = self.post(url, data = data)
         p = re.compile('location\.replace\([\'"](.*?)[\'"]\)')
         login_url = p.search(r.text).group(1)
         r = self.get(login_url)
-        return r.text
+        p =  re.compile('\((.+?)\)')
+        text = r.text
+        data = p.search(text).group(1)
+        data = json.loads(data)
+        if not data['result']:
+            print(data['reason'])
+            return self.login(self.get_pin())
+        return text
 
-    def get_servertime(self):
-        url = 'http://login.sina.com.cn/sso/prelogin.php?entry=weibo&callback=sinaSSOController.preloginCallBack&su=dW5kZWZpbmVk&client=ssologin.js(v1.3.18)&_=1329806375939'
+    def prelogin(self):
+        url = 'http://login.sina.com.cn/sso/prelogin.php?entry=sso&callback=sinaSSOController.preloginCallBack&su=dW5kZWZpbmVk&rsakt=mod&client=ssologin.js(v1.4.2)&_=1352276350389'
         r = self.get(url)
         p = re.compile('\((.+?)\)')
         json_data = p.search(r.text).group(1)
         data = json.loads(json_data)
-        servertime = data['servertime']
-        nonce = data['nonce']
-        return servertime, nonce
+        return data
 
     def enc_user(self):
         if is_py3k:
